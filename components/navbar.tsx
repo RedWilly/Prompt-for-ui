@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { LogoIcon } from "./ui/icons";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -38,6 +39,7 @@ export function Navbar() {
         </Link>
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
+          <ThemeToggle />
           {session ? (
             <Button
               variant="ghost"
