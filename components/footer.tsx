@@ -34,14 +34,6 @@ export function Footer() {
             >
               Terms
             </Link>
-            <Link
-              href="https://github.com/PixelUI/prompt-for-ui"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              GitHub
-            </Link>
           </nav>
         </div>
       </div>
