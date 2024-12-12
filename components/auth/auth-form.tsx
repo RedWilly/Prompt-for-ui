@@ -99,9 +99,9 @@ export function AuthForm({ className, type, ...props }: UserAuthFormProps) {
           });
 
           if (result?.error) {
-            toast.error(result.error);
+            toast.error("Invalid email or password");
           } else {
-            window.location.href = "/";
+            window.location.href = "/dashboard";
           }
           break;
         }

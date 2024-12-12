@@ -12,6 +12,7 @@ export default withAuth(
     if (req.nextUrl.pathname.startsWith("/auth/") && req.nextauth.token) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
+
     return NextResponse.next();
   },
   {
@@ -21,8 +22,9 @@ export default withAuth(
         if (req.nextUrl.pathname.startsWith("/auth/verify")) {
           return true;
         }
-        // Require auth for dashboard
-        if (req.nextUrl.pathname.startsWith("/dashboard")) {
+        // Require auth for dashboard and profile
+        if (req.nextUrl.pathname.startsWith("/dashboard") || 
+            req.nextUrl.pathname.startsWith("/profile")) {
           return !!token;
         }
         return true;
@@ -31,6 +33,7 @@ export default withAuth(
   }
 );
 
+// Protect these routes
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/profile/:path*", "/auth/:path*"]
 };
