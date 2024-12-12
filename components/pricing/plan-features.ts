@@ -13,9 +13,9 @@ export const plans = [
     buttonVariant: "outline" as const,
   },
   {
-    name: "Premium",
+    name: "PRO",
     description: "For professionals and teams",
-    price: "$19",
+    price: "$10",
     features: [
       "60 prompts per month",
       "Priority support",

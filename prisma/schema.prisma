@@ -39,11 +39,40 @@ model User {
   name          String?
   email         String?   @unique
   emailVerified DateTime?
+  password      String?
   image         String?
   accounts      Account[]
   sessions      Session[]
   subscription  Subscription?
   usageCount    UsageCount?
+  verificationToken       String?   @unique
+  resetPasswordToken     String?   @unique
+  resetPasswordTokenExpiry DateTime?
+  stripeCustomerId String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSubscriptionId String? @unique
+  stripePriceId      String?
+  stripeCurrentPeriodEnd DateTime?
+  plan               Plan      @default(FREE)
+  status             SubscriptionStatus @default(ACTIVE)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model UsageCount {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -54,29 +83,16 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Subscription {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  plan      Plan     @default(FREE)
-  status    Status   @default(ACTIVE)
-  startDate DateTime @default(now())
-  endDate   DateTime?
-  stripeCustomerId String?
-  stripeSubscriptionId String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model UsageCount {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  count     Int      @default(0)
-  resetDate DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 enum Plan {
   FREE
-  PREMIUM
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+  PAST_DUE
 }
 
 enum Status {

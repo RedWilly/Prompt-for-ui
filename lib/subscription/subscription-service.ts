@@ -1,10 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { addDays } from "date-fns";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16",
-});
+import { stripe } from "@/lib/stripe";
 
 export async function createStripeCustomer(userId: string, email: string) {
   const customer = await stripe.customers.create({
@@ -14,8 +9,8 @@ export async function createStripeCustomer(userId: string, email: string) {
     },
   });
 
-  await prisma.subscription.update({
-    where: { userId },
+  await prisma.user.update({
+    where: { id: userId },
     data: {
       stripeCustomerId: customer.id,
     },
@@ -27,13 +22,17 @@ export async function createStripeCustomer(userId: string, email: string) {
 export async function createSubscription(userId: string, priceId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { subscription: true },
+    select: {
+      id: true,
+      email: true,
+      stripeCustomerId: true,
+      subscription: true,
+    },
   });
 
   if (!user) throw new Error("User not found");
 
-  let { subscription } = user;
-  let customerId = subscription?.stripeCustomerId;
+  let customerId = user.stripeCustomerId;
 
   if (!customerId && user.email) {
     const customer = await createStripeCustomer(userId, user.email);
@@ -50,14 +49,22 @@ export async function createSubscription(userId: string, priceId: string) {
     expand: ["latest_invoice.payment_intent"],
   });
 
-  await prisma.subscription.update({
+  await prisma.subscription.upsert({
     where: { userId },
-    data: {
+    create: {
+      userId,
       stripeSubscriptionId: stripeSubscription.id,
-      plan: "PREMIUM",
+      stripePriceId: priceId,
+      plan: "PRO",
       status: "ACTIVE",
-      startDate: new Date(),
-      endDate: addDays(new Date(), 30),
+      stripeCurrentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+    },
+    update: {
+      stripeSubscriptionId: stripeSubscription.id,
+      stripePriceId: priceId,
+      plan: "PRO",
+      status: "ACTIVE",
+      stripeCurrentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
     },
   });
 

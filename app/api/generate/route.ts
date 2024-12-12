@@ -23,11 +23,13 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const image = formData.get("image") as File;
+    const existingPrompt = formData.get("existingPrompt") as string | null;
+
     if (!image) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    const prompt = await generatePrompt(image);
+    const prompt = await generatePrompt(image, existingPrompt || undefined);
     await incrementUsage(session.user.id);
 
     return NextResponse.json({ prompt });

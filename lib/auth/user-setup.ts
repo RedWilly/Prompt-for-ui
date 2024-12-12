@@ -1,4 +1,3 @@
-import { addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 
 export async function createInitialUserData(userId: string) {
@@ -8,7 +7,6 @@ export async function createInitialUserData(userId: string) {
     create: {
       userId,
       count: 0,
-      resetDate: new Date(),
     },
     update: {},
   });
@@ -20,8 +18,7 @@ export async function createInitialUserData(userId: string) {
       userId,
       plan: "FREE",
       status: "ACTIVE",
-      startDate: new Date(),
-      endDate: addDays(new Date(), 30),
+      stripeCurrentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     },
     update: {},
   });
