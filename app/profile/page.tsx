@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { SubscriptionButton } from "@/components/subscription-button";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
