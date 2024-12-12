@@ -26,7 +26,7 @@ export default async function ProfilePage() {
     where: { userId: session.user.id },
   });
 
-  const maxUsage = subscriptionPlan.plan === "PRO" ? 60 : 5;
+  const maxUsage = subscriptionPlan.plan === "PRO" ? 60 : 6;
   const usagePercentage = (usageCount?.count || 0) / maxUsage * 100;
 
   return (

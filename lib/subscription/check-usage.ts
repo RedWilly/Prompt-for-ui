@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getUserSubscriptionPlan } from "@/lib/subscription";
 
 export const USAGE_LIMITS = {
-  FREE: 5,
+  FREE: 6,
   PRO: 60,
 } as const;
 

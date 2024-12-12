@@ -4,7 +4,7 @@ export const plans = [
     description: "Perfect for trying out our service",
     price: "$0",
     features: [
-      "5 prompts per month",
+      "6 prompts per month",
       "Basic support",
       "Standard response time",
       "Community access",
