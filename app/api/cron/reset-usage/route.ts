@@ -14,7 +14,6 @@ export async function POST(req: Request) {
     await prisma.usageCount.updateMany({
       data: {
         count: 0,
-        resetDate: startOfMonth(new Date()),
       },
     });
 
