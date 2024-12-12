@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { SubscriptionButton } from "@/components/subscription-button";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
@@ -24,11 +26,17 @@ export default async function ProfilePage() {
     where: { userId: session.user.id },
   });
 
-  const maxUsage = subscriptionPlan.plan === "PRO" ? Infinity : 10;
-  const usagePercentage = maxUsage === Infinity ? 0 : (usageCount?.count || 0) / maxUsage * 100;
+  const maxUsage = subscriptionPlan.plan === "PRO" ? 60 : 5;
+  const usagePercentage = (usageCount?.count || 0) / maxUsage * 100;
 
   return (
     <div className="container max-w-6xl py-8">
+      <Button variant="ghost" asChild className="mb-6">
+        <Link href="/dashboard" className="flex items-center">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Back
+        </Link>
+      </Button>
       <div className="flex flex-col gap-8">
         <div>
           <h1 className="text-3xl font-bold">Profile</h1>
@@ -73,9 +81,9 @@ export default async function ProfilePage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Usage</label>
                 <div className="space-y-1">
-                  <Progress value={usagePercentage} className="h-2" />
+                  <Progress value={Math.min(usagePercentage, 100)} className="h-2" />
                   <p className="text-xs text-muted-foreground">
-                    {usageCount?.count || 0} / {maxUsage === Infinity ? "∞" : maxUsage} prompts generated
+                    {usageCount?.count || 0} / {maxUsage} prompts generated
                   </p>
                 </div>
               </div>

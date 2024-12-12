@@ -14,7 +14,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "PixelUI - Turn Designs into Code",
-  description: "Upload your design and get pixel-perfect code",
+  description: "Upload any website design or UI mockup and instantly get AI-optimized prompts for development. Convert your visual designs into precise, detailed prompts for AI-powered web development. Save time and improve accuracy in your development workflow.",
+  keywords: "AI prompts, web development, UI design, design to code, AI development, website generator, UI conversion, design transformation",
+  openGraph: {
+    title: "PixelUI - Turn Designs into Code",
+    description: "Upload any website design or UI mockup and instantly get AI-optimized prompts for development. Transform your visual designs into precise prompts for AI-powered web development.",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({

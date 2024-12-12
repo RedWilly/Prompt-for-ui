@@ -39,27 +39,31 @@ export function Navbar() {
         </Link>
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
-          <ThemeToggle />
-          {session ? (
-            <Button
-              variant="ghost"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="transition-colors hover:bg-secondary"
-            >
-              <span className="hidden sm:inline-block">Sign Out</span>
-              <span className="sm:hidden">Logout</span>
-            </Button>
-          ) : (
-            <Link href="/auth/signin">
-              <Button 
-                variant="default"
-                className="transition-transform hover:scale-105 active:scale-95"
-              >
-                <span className="hidden sm:inline-block">Sign In</span>
-                <span className="sm:hidden">Login</span>
-              </Button>
-            </Link>
-          )}
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            {session ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/profile">Profile</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/auth/signin">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/auth/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
+          </div>
         </nav>
       </div>
     </header>
