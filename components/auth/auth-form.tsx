@@ -23,6 +23,7 @@ import { Icons } from "@/components/icons";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   type: "signin" | "signup" | "forgot-password" | "reset-password";
+  callbackUrl?: string;
 }
 
 const signinFormSchema = z.object({
@@ -55,7 +56,7 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
 
 type FormValues = SigninFormValues | SignupFormValues | ForgotPasswordFormValues | ResetPasswordFormValues;
 
-export function AuthForm({ className, type, ...props }: UserAuthFormProps) {
+export function AuthForm({ className, type, callbackUrl, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -95,7 +96,8 @@ export function AuthForm({ className, type, ...props }: UserAuthFormProps) {
           const result = await signIn("credentials", {
             email,
             password,
-            redirect: false,
+            redirect: true,
+            callbackUrl: callbackUrl || "/dashboard",
           });
 
           if (result?.error) {

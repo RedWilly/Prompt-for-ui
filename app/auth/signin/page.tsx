@@ -33,7 +33,7 @@ export default async function SignInPage({
             Enter your email to sign in to your account
           </p>
         </div>
-        <AuthForm callbackUrl={searchParams.callbackUrl} type="signin" />
+        <AuthForm type="signin" callbackUrl={searchParams.callbackUrl} />
         <p className="px-8 text-center text-sm text-muted-foreground">
           <Link href="/auth/signup" className="hover:text-brand underline underline-offset-4">
             Don&apos;t have an account? Sign Up
