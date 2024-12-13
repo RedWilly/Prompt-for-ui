@@ -17,14 +17,21 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
       authorization: {
         params: {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          scope: "openid email profile"
-        }
-      }
+        },
+      },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -87,6 +94,29 @@ export const authOptions: NextAuthOptions = {
 
         // If no user exists with this email, allow sign up
         if (!existingUser) {
+          // Create new user account
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              emailVerified: new Date(), // Google accounts are pre-verified
+              accounts: {
+                create: {
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  access_token: account.access_token,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                }
+              }
+            }
+          });
+
+          // Create initial user data (usage count, etc.)
+          await createInitialUserData(newUser.id);
           return true;
         }
 
@@ -98,30 +128,64 @@ export const authOptions: NextAuthOptions = {
         // If user exists but doesn't have Google linked, check if they're signed in
         const session = await getServerSession(authOptions);
         if (session?.user.email?.toLowerCase() === user.email?.toLowerCase()) {
-          // User is signed in with matching email, allow linking
+          // Create the Google account link
+          await prisma.account.create({
+            data: {
+              userId: existingUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            }
+          });
           return true;
         }
 
-        // User exists but not signed in or email doesn't match
-        return "/auth/error?error=EmailMismatch";
+        // Users trying to sign in with unlinked Google accounts
+        if (existingUser.password) {
+          return "/auth/error?error=OAuth_Account_Not_Linked";
+        }
+
+        // Users trying to link Google accounts with mismatched emails
+        if (session?.user.email && session.user.email.toLowerCase() !== user.email?.toLowerCase()) {
+          return "/auth/error?error=EmailMismatch";
+        }
+
+        // If user exists but has no password, allow Google sign in and link account
+        await prisma.account.create({
+          data: {
+            userId: existingUser.id,
+            type: account.type,
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token,
+            token_type: account.token_type,
+            scope: account.scope,
+            id_token: account.id_token,
+          }
+        });
+        return true;
       }
 
       return true;
     },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
-    async session({ session, token }) {
-      if (session.user) {
+    async session({ session, user, token }) {
+      if (session?.user) {
         session.user.id = token.sub!;
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.sub = user.id;
       }

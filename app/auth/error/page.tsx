@@ -11,10 +11,10 @@ export default function AuthErrorPage() {
   let errorMessage = "An error occurred during authentication.";
   let actionMessage = "Please try again or contact support if the issue persists.";
 
-  if (error === "OAuth_Account_Not_Linked") {
-    errorMessage = "Your Google account is not linked to an existing account.";
+  if (searchParams.error === "OAuth_Account_Not_Linked") {
+    errorMessage = "Your Google account is not linked to your existing account.";
     actionMessage = "Please sign in with your email and password first, then link your Google account from your profile.";
-  } else if (error === "EmailMismatch") {
+  } else if (searchParams.error === "EmailMismatch") {
     errorMessage = "The Google account email does not match your current account.";
     actionMessage = "Please use a Google account with the same email as your existing account.";
   }
