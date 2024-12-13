@@ -1,20 +1,24 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { Metadata } from "next";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function AuthErrorPage() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get("error");
+export const metadata: Metadata = {
+  title: "Authentication Error",
+  description: "An error occurred during authentication",
+};
 
+export default function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   let errorMessage = "An error occurred during authentication.";
   let actionMessage = "Please try again or contact support if the issue persists.";
 
-  if (searchParams.error === "OAuth_Account_Not_Linked") {
+  if (searchParams?.error === "OAuth_Account_Not_Linked") {
     errorMessage = "Your Google account is not linked to your existing account.";
     actionMessage = "Please sign in with your email and password first, then link your Google account from your profile.";
-  } else if (searchParams.error === "EmailMismatch") {
+  } else if (searchParams?.error === "EmailMismatch") {
     errorMessage = "The Google account email does not match your current account.";
     actionMessage = "Please use a Google account with the same email as your existing account.";
   }
@@ -29,10 +33,7 @@ export default function AuthErrorPage() {
         </div>
         <div className="grid gap-4">
           <Button asChild>
-            <Link href="/auth/signin">Sign In</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/">Go Home</Link>
+            <Link href="/auth/signin">Back to Sign In</Link>
           </Button>
         </div>
       </div>
