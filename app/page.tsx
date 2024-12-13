@@ -77,9 +77,9 @@ export default async function Home() {
           <p className="text-xl text-muted-foreground mb-8">
             Join thousands of developers who are already using our platform to accelerate their development workflow.
           </p>
-          <Button size="lg" asChild className="px-8">
+          {/* <Button size="lg" asChild className="px-8">
             <a href="/api/auth/signin">Start Building Now</a>
-          </Button>
+          </Button> */}
         </div>
       </section>
 

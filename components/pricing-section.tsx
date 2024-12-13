@@ -42,11 +42,11 @@ export function PricingSection() {
                   ))}
                 </ul>
               </CardContent>
-              <CardFooter>
+              {/* <CardFooter>
                 <Button className="w-full" variant={plan.buttonVariant}>
                   {plan.buttonText}
                 </Button>
-              </CardFooter>
+              </CardFooter> */}
             </Card>
           ))}
         </div>

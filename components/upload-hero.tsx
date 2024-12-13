@@ -182,8 +182,8 @@ export function UploadHero() {
 
       {generatedPrompt && !isLoading && (
         <div className="container mt-8">
-          <div className="grid gap-4 sm:gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-2 max-w-8xl mx-auto">
-            <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur-sm border-muted h-[min(600px,60vh)] sm:h-[min(700px,70vh)] lg:h-screen-80 flex flex-col">
+          <div className="flex flex-col gap-4 sm:gap-6 max-w-4xl mx-auto">
+            <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur-sm border-muted flex flex-col h-[400px] sm:h-[450px]">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sticky top-0 bg-background/80 backdrop-blur-sm z-10 pb-4 gap-3 sm:gap-2">
                 <h3 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">Design Analysis</h3>
                 <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -229,7 +229,7 @@ export function UploadHero() {
             </Card>
 
             {generatedPrompt2 && !isLoadingPrompt2 && (
-              <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur-sm border-muted h-[min(600px,60vh)] sm:h-[min(700px,70vh)] lg:h-screen-80 flex flex-col">
+              <Card className="p-4 sm:p-6 bg-card/50 backdrop-blur-sm border-muted flex flex-col h-[400px] sm:h-[450px]">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sticky top-0 bg-background/80 backdrop-blur-sm z-10 pb-4 gap-3 sm:gap-2">
                   <h3 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-secondary to-secondary/50 bg-clip-text text-transparent">Additional Pages</h3>
                   <Button

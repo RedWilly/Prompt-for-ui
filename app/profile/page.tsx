@@ -11,6 +11,7 @@ import { Icons } from "@/components/icons";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { LinkGoogleButton } from "@/components/auth/link-google-button";
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +22,26 @@ export default async function ProfilePage() {
     redirect("/auth/signin");
   }
 
-  const subscriptionPlan = await getUserSubscriptionPlan(session.user.id);
-  const usageCount = await prisma.usageCount.findUnique({
-    where: { userId: session.user.id },
-  });
+  const [subscriptionPlan, usage, userData] = await Promise.all([
+    getUserSubscriptionPlan(session.user.id),
+    prisma.usageCount.findUnique({
+      where: { userId: session.user.id },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        accounts: {
+          select: {
+            provider: true
+          }
+        }
+      }
+    })
+  ]);
 
   const maxUsage = subscriptionPlan.plan === "PRO" ? 60 : 6;
-  const usagePercentage = (usageCount?.count || 0) / maxUsage * 100;
+  const usagePercentage = ((usage?.count || 0) / maxUsage) * 100;
+  const hasGoogleAccount = userData?.accounts.some(acc => acc.provider === "google");
 
   return (
     <div className="container max-w-6xl py-8">
@@ -60,6 +74,19 @@ export default async function ProfilePage() {
                 <label className="text-sm font-medium">Email</label>
                 <p className="text-sm text-muted-foreground">{session.user.email}</p>
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Connected Accounts</label>
+                <div className="flex items-center gap-4">
+                  {hasGoogleAccount ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Icons.google className="h-4 w-4" />
+                      <span>Google Account Connected</span>
+                    </div>
+                  ) : (
+                    <LinkGoogleButton />
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -83,7 +110,7 @@ export default async function ProfilePage() {
                 <div className="space-y-1">
                   <Progress value={Math.min(usagePercentage, 100)} className="h-2" />
                   <p className="text-xs text-muted-foreground">
-                    {usageCount?.count || 0} / {maxUsage} prompts generated
+                    {usage?.count || 0} / {maxUsage} prompts generated
                   </p>
                 </div>
               </div>

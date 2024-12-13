@@ -5,6 +5,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { createInitialUserData } from "./user-setup";
 import bcrypt from "bcryptjs";
+import { toast } from "sonner";
+import { getServerSession } from "next-auth/next";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -15,6 +17,14 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope: "openid email profile"
+        }
+      }
     }),
     CredentialsProvider({
       name: "credentials",
@@ -27,8 +37,16 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please enter your email and password");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+        // const user = await prisma.user.findUnique({
+        //   where: { email: { equals: credentials.email, mode: 'insensitive' } }
+        // });
+        const user = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: credentials.email,
+              mode: 'insensitive'
+            }
+          }
         });
 
         if (!user || !user.password) {
@@ -53,6 +71,43 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
+    async signIn({ account, user, profile }) {
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: user.email,
+              mode: 'insensitive'
+            }
+          },
+          include: {
+            accounts: true
+          }
+        });
+
+        // If no user exists with this email, allow sign up
+        if (!existingUser) {
+          return true;
+        }
+
+        // If user exists and already has a Google account linked, allow sign in
+        if (existingUser.accounts.some(acc => acc.provider === "google")) {
+          return true;
+        }
+
+        // If user exists but doesn't have Google linked, check if they're signed in
+        const session = await getServerSession(authOptions);
+        if (session?.user.email?.toLowerCase() === user.email?.toLowerCase()) {
+          // User is signed in with matching email, allow linking
+          return true;
+        }
+
+        // User exists but not signed in or email doesn't match
+        return "/auth/error?error=EmailMismatch";
+      }
+
+      return true;
+    },
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`
