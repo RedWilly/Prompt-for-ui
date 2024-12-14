@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth/auth-options";
 import { UploadHero } from "@/components/upload-hero";
 import { getUserSubscriptionPlan } from "@/lib/subscription";
-import { checkUserUsage } from "@/lib/subscription/check-usage";
 import { UpgradeButton } from "@/components/upgrade-button";
 import { EmailVerificationBanner } from "@/components/email-verification-banner";
 import { prisma } from "@/lib/prisma";
+import { USAGE_LIMITS } from "@/lib/subscription/check-usage";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,16 +20,18 @@ export default async function DashboardPage() {
   try {
     const [subscriptionPlan, usage, user] = await Promise.all([
       getUserSubscriptionPlan(session.user.id),
-      checkUserUsage(session.user.id).catch(() => ({
-        count: 0,
-        limit: 5,
-        remainingUses: 5,
-      })),
+      prisma.usageCount.findUnique({
+        where: { userId: session.user.id },
+      }),
       prisma.user.findUnique({
         where: { id: session.user.id },
         select: { emailVerified: true, email: true },
       }),
     ]);
+
+    const maxUsage = USAGE_LIMITS[subscriptionPlan.plan];
+    const currentUsage = usage?.count || 0;
+    const remainingUses = Math.max(0, maxUsage - currentUsage);
 
     return (
       <main className="container max-w-6xl py-8">
@@ -62,11 +64,11 @@ export default async function DashboardPage() {
               </div>
               <div className="space-y-2">
                 <div className="text-2xl font-bold">
-                  {usage.count} / {usage.limit}
+                  {currentUsage} / {maxUsage}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {usage.remainingUses > 0
-                    ? `${usage.remainingUses} prompts remaining`
+                  {remainingUses > 0
+                    ? `${remainingUses} prompts remaining`
                     : subscriptionPlan.plan === "FREE" 
                       ? "Upgrade to PRO for more prompts"
                       : "Start generating prompts"}

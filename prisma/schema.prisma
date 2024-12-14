@@ -49,6 +49,7 @@ model User {
   resetPasswordToken     String?   @unique
   resetPasswordTokenExpiry DateTime?
   stripeCustomerId String?   @unique
+  promptHistory  PromptHistory[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -81,6 +82,18 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PromptHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl        String   
+  initialPrompt   String   @db.Text
+  additionalPrompt String? @db.Text
+  backendPrompt   String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum Plan {

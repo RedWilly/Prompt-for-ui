@@ -44,6 +44,9 @@ export function Navbar() {
             {session ? (
               <>
                 <Button variant="ghost" asChild>
+                  <Link href="/history">History</Link>
+                </Button>
+                <Button variant="ghost" asChild>
                   <Link href="/profile">Profile</Link>
                 </Button>
                 <Button

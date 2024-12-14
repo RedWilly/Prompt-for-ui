@@ -117,32 +117,146 @@ If the original page's description includes a navbar with links like "Products,"
 
 Note: Be thorough in your analysis of the navigation elements. They are key indicators of the website's structure. If a navigation link's purpose isn't immediately obvious, use your best judgment based on industry standards and the overall context of the website. The goal is to provide a developer with a clear and detailed blueprint for each new page, enabling them to build these pages as if they were part of the original design. The pages created should be a close a possible to the main page provided. Also be creative in naming pages if you are not sure what the page should be called. ( exp. if the page that was provided is a contact page, you can create other pages like, Plans & Pricing, Team, etc...) make sure it make sense. If a page that could be related to a element in a navbar, sidebar, footer, etc... and it has already been mention in the main page provided, you can skip it. Start your response with "Now, I will describe additional...`;
 
-export async function generatePrompt(imageFile: File, existingPrompt?: string) {
+const backendSystemInstruction = `You are a highly skilled AI backend architect specializing in designing the logic and API for web applications. You will be provided with information about a website's design, including descriptions of its pages and their functionalities. Based on this information, your task is to create a detailed plan for the backend of this website, outlining the necessary API endpoints, data models, and business logic.
+
+Technology Stack:
+• Programming Language: Node.js (TypeScript)
+• Backend Framework: Express.js
+• Database ORM: Prisma
+• Database: SQL (e.g., PostgreSQL)
+
+Input:
+You will receive detailed descriptions of the website's pages, including:
+• Page Names and Purposes
+• Extracted Text (Hypothetical)
+• Component Breakdowns
+• Design Requirements
+• Layout Specifications
+• Visual Styles
+• Specific Element Details
+
+Output:
+Generate a comprehensive text description of the backend, including the following sections:
+
+1. Data Models:
+   • Define the necessary data models based on the information provided about the website
+   • Use Prisma schema format for the models (but only describe the fields and relationships - do not write the Prisma schema code)
+   • Specify the data types for each field (e.g., String, Int, Boolean, DateTime)
+   • Describe the relationships between models (e.g., one-to-many, many-to-many)
+
+2. API Endpoints:
+   • For each page or component that requires data or interaction, define the necessary API endpoints
+   • Use RESTful conventions for endpoint design (e.g., GET, POST, PUT, DELETE)
+   • Specify the endpoint paths (e.g., /api/users, /api/products/:id)
+   • Describe the expected request parameters (if any)
+   • Describe the expected response format (e.g., JSON)
+   • Outline the basic logic/functionality of each endpoint
+
+3. Business Logic:
+   • Describe any complex business logic that needs to be implemented on the backend
+   This could include things like:
+   • User authentication and authorization
+   • Data validation
+   • Calculations or data processing
+   • Interactions with third-party services
+   • Any other logic that is not directly related to serving API endpoints
+
+4. Database Interactions:
+   • For each API endpoint or business logic component, describe how it interacts with the database
+   • Specify which data models are involved
+   • Outline the basic database operations (e.g., create, read, update, delete)
+   • Don't write SQL queries or Prisma code, just describe the interactions in plain language
+
+5. Error Handling:
+   • Provide general guidelines for error handling in the API
+   • Describe how different types of errors (e.g., validation errors, database errors, server errors) should be handled and reported to the client
+
+6. Security Considerations:
+   • Outline any security considerations that should be taken into account
+   This could include things like:
+   • Input sanitization
+   • Protecting against common vulnerabilities (e.g., SQL injection, cross-site scripting)
+   • Securing API keys or other sensitive information
+
+Constraints and Rules:
+• Do not generate any code. Output only text descriptions
+• Base your backend design on the provided information about the website's pages and their functionalities
+• Follow RESTful conventions for API design
+• Use descriptive names for data models, API endpoints, and variables
+• Prioritize clarity and comprehensiveness in your descriptions
+• Assume the developer will be using Node.js, TypeScript, Express.js, and Prisma with a SQL database
+
+Example (Illustrative):
+If the website includes a "User Profile" page, you might describe:
+
+• Data Model: User with fields like id (Int, unique), name (String), email (String, unique), password (String), createdAt (DateTime)
+• API Endpoint: GET /api/users/:id to retrieve a user's profile, PUT /api/users/:id to update a user's profile
+• Business Logic: User authentication using JWT, password hashing
+• Database Interactions: The GET /api/users/:id endpoint retrieves a User from the database based on the provided ID
+• Error Handling: Return a 404 error if the user is not found, a 400 error if the request is invalid and a 401 if not correctly authenticated
+• Security: Sanitize user inputs to prevent SQL injection
+
+Note: The goal is to provide a developer with a clear and detailed blueprint for building the backend of the website. Your descriptions should be comprehensive enough to guide the development process without the need for any further design decisions.`;
+
+export async function generatePrompt(imageFile: File | null, existingPrompt?: string) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    let imageData: string | undefined;
+
+    if (imageFile) {
+      const buffer = await imageFile.arrayBuffer();
+      imageData = Buffer.from(buffer).toString('base64');
+    }
 
     const prompt = existingPrompt 
       ? `${systemInstruction2}\n\nExisting Analysis:\n${existingPrompt}`
       : systemInstruction;
 
-    const imageParts = await Promise.all([
-      imageFile.arrayBuffer().then((buffer) => {
-        const uint8Array = new Uint8Array(buffer);
-        return {
-          inlineData: {
-            data: Buffer.from(uint8Array).toString('base64'),
-            mimeType: imageFile.type,
-          },
-        };
-      }),
-    ]);
+    const result = await model.generateContent(
+      imageFile
+        ? [
+            { text: imageFile ? systemInstruction : systemInstruction2 },
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: imageFile.type,
+                data: imageData!
+              }
+            }
+          ]
+        : [
+            { text: systemInstruction2 },
+            { text: prompt }
+          ]
+    );
 
-    const result = await model.generateContent([prompt, ...imageParts]);
-    const response = await result.response;
-    const text = response.text();
-    return text;
+    const response = result.response;
+    return response.text();
   } catch (error) {
     console.error("Error generating prompt:", error);
     throw error;
   }
+}
+
+export async function generateBackendPrompt(uiPrompt1: string, uiPrompt2: string): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+  const prompt = `
+UI Prompt 1:
+${uiPrompt1}
+
+UI Prompt 2:
+${uiPrompt2}
+
+Based on these UI implementation details, please generate a comprehensive backend implementation guide following the system instructions.
+`;
+
+  const result = await model.generateContent([
+    { text: backendSystemInstruction },
+    { text: prompt },
+  ]);
+
+  const response = result.response;
+  return response.text();
 }
