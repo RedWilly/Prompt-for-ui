@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       return new Response("User not found", { status: 404 });
     }
 
-    const history = await prisma.PromptHistory.create({
+    const history = await prisma.promptHistory.create({
       data: {
         userId: user.id,
         imageUrl,
